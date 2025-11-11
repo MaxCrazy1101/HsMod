@@ -1,0 +1,39 @@
+name: Daily Upstream Sync
+
+on:
+  # 1. 每日定时运行（UTC 时间 0 点）
+  schedule:
+    - cron: '0 0 * * *'
+  # 2. 允许在 Actions 页面手动触发
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }} # 使用 GITHUB_TOKEN (或者一个 PAT)
+        fetch-depth: 0
+
+    - name: Set up upstream remote
+      run: |
+        git remote add upstream https://github.com/Pik-4/HsMod.git
+        git fetch upstream
+      shell: bash
+
+    # 3. 将上游分支强制同步到您的 'upstream-sync' 分支
+    - name: Sync upstream branch
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        
+        # 检出上游的 'bepinex5' 分支内容到一个本地分支
+        git checkout -B bepinex5 upstream/bepinex5
+        
+        # 强制将这个本地分支推送到您 fork 上的 'bepinex5' 分支
+        # 这会覆盖您 fork 上 'bepinex5' 分支的历史记录
+        git push origin bepinex5 --force
+      shell: bash
